@@ -10,7 +10,6 @@ async function listContacts() {
 }
 
 async function getContactById(contactId) {
-  // Via Contact
   return Contact.findByPk(contactId)
 }
 
@@ -35,14 +34,12 @@ async function addContact(name, email, phone) {
 }
 
 async function updateContact(contactId, name = null, email = null, phone = null) {
-  // Validate input
   if (name === null && email === null && phone === null) {
     throw new Error('At least one field must be provided for update');
   }
-  // Update contact in the database
   const contact = await Contact.findByPk(contactId);
   if (!contact) {
-    throw new Error('Contact not found');
+    return null;
   }
   if (!name) name = contact.name;
   if (!email) email = contact.email;
@@ -53,4 +50,14 @@ async function updateContact(contactId, name = null, email = null, phone = null)
   return updatedContact;
 }
 
-export {listContacts, getContactById, removeContact, addContact, updateContact};
+async function updateStatusContact(contactId, favorite) {
+  const contact = await Contact.findByPk(contactId);
+  if (!contact) {
+    return null;
+  }
+  contact.favorite = favorite;
+  await contact.save();
+  return contact;
+}
+
+export {listContacts, getContactById, removeContact, addContact, updateContact, updateStatusContact};

@@ -15,3 +15,9 @@ export const updateContactSchema = Joi.object({
     "object.min": "Body must have at least one field",
     "object.unknown": "Invalid field(s) provided",
 })
+
+export const updateFavoriteSchema = Joi.object({
+    favorite: Joi.boolean().required(),
+}).required().messages({
+    "object.unknown": "Invalid field(s) provided",
+})

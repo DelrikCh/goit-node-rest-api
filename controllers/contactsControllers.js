@@ -65,7 +65,23 @@ export const updateContact = (req, res) => {
     )
     .then((updatedContact) => {
       if (!updatedContact) {
-        return res.status(404).json({ error: "Contact not found" });
+        return res.status(404).json({ error: "Not found" });
+      }
+      res.status(200).json(updatedContact);
+    })
+    .catch((error) => {
+      res.status(500).json({ error: "Failed to update contact" });
+    });
+};
+
+export const updateStatusContact = (req, res) => {
+  const { id } = req.params;
+  const { favorite } = req.body;
+  contactsServices
+    .updateStatusContact(id, favorite)
+    .then((updatedContact) => {
+      if (!updatedContact) {
+        return res.status(404).json({ error: "Not found" });
       }
       res.status(200).json(updatedContact);
     })
