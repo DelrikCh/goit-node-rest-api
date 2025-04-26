@@ -58,4 +58,22 @@ async function addContact(name, email, phone) {
   }
 }
 
-export {listContacts, getContactById, removeContact, addContact};
+async function updateContact(contactId, name = null, email = null, phone=null) {
+  try {
+    const contacts = await listContacts();
+    const index = contacts.findIndex(contact => contact.id === contactId);
+    if (index === -1) return null;
+    
+    const updatedName = name !== null ? name : contacts[index].name;
+    const updatedEmail = email !== null ? email : contacts[index].email;
+    const updatedPhone = phone !== null ? phone : contacts[index].phone;
+    contacts[index] = { ...contacts[index], name: updatedName, email: updatedEmail, phone: updatedPhone };
+    await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2), 'utf8');
+    return contacts[index];
+  } catch (error) {
+    console.error('Error while updating a contact:', error);
+    return null;
+  }
+}
+
+export {listContacts, getContactById, removeContact, addContact, updateContact};
