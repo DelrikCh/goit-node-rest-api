@@ -1,28 +1,17 @@
 import fs from 'fs/promises';
 import path from 'path';
+import Contact from '../db/models/contacts.js';
 
 const __dirname = path.resolve();
 const contactsPath = path.join(__dirname, 'db', 'contacts.json');
 
 async function listContacts() {
-  try {
-    const data = await fs.readFile(contactsPath, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error while reading a file:', error);
-    return [];
-  }
+  return Contact.findAll()
 }
 
 async function getContactById(contactId) {
-  try {
-    const contacts = await listContacts();
-    const contact = contacts.find(contact => contact.id === contactId);
-    return contact || null;
-  } catch (error) {
-    console.error('Error while getting a contact:', error);
-    return null;
-  }
+  // Via Contact
+  return Contact.findByPk(contactId)
 }
 
 async function removeContact(contactId) {
@@ -41,39 +30,27 @@ async function removeContact(contactId) {
 }
 
 async function addContact(name, email, phone) {
-  try {
-    const contacts = await listContacts();
-    const newContact = {
-      id: Date.now().toString(),  // use timestamp as a unique ID
-      name,
-      email,
-      phone
-    };
-    contacts.push(newContact);
-    await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2), 'utf8');
-    return newContact;
-  } catch (error) {
-    console.error('Error while adding a contact', error);
-    return null;
-  }
+  const newContact = await Contact.create({ name, email, phone });
+  return newContact;
 }
 
-async function updateContact(contactId, name = null, email = null, phone=null) {
-  try {
-    const contacts = await listContacts();
-    const index = contacts.findIndex(contact => contact.id === contactId);
-    if (index === -1) return null;
-    
-    const updatedName = name !== null ? name : contacts[index].name;
-    const updatedEmail = email !== null ? email : contacts[index].email;
-    const updatedPhone = phone !== null ? phone : contacts[index].phone;
-    contacts[index] = { ...contacts[index], name: updatedName, email: updatedEmail, phone: updatedPhone };
-    await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2), 'utf8');
-    return contacts[index];
-  } catch (error) {
-    console.error('Error while updating a contact:', error);
-    return null;
+async function updateContact(contactId, name = null, email = null, phone = null) {
+  // Validate input
+  if (name === null && email === null && phone === null) {
+    throw new Error('At least one field must be provided for update');
   }
+  // Update contact in the database
+  const contact = await Contact.findByPk(contactId);
+  if (!contact) {
+    throw new Error('Contact not found');
+  }
+  if (!name) name = contact.name;
+  if (!email) email = contact.email;
+  if (!phone) phone = contact.phone;
+  const updatedContact = await contact
+    .update({ name, email, phone })
+    .then(() => contact);
+  return updatedContact;
 }
 
 export {listContacts, getContactById, removeContact, addContact, updateContact};
