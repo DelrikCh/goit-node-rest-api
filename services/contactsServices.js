@@ -14,18 +14,12 @@ async function getContactById(contactId) {
 }
 
 async function removeContact(contactId) {
-  try {
-    const contacts = await listContacts();
-    const index = contacts.findIndex(contact => contact.id === contactId);
-    if (index === -1) return null;
-
-    const [deletedContact] = contacts.splice(index, 1);
-    await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2), 'utf8');
-    return deletedContact;
-  } catch (error) {
-    console.error('Error while removing a contact:', error);
+  const contact = await Contact.findByPk(contactId);
+  if (!contact) {
     return null;
   }
+  await contact.destroy();
+  return contact;
 }
 
 async function addContact(name, email, phone) {
