@@ -1,9 +1,6 @@
 import fs from 'fs/promises';
-import path from 'path';
 
 import Contact from '../db/models/contacts.js';
-
-const __dirname = path.resolve();
 
 async function listContacts(owner) {
   return Contact.findAll({
