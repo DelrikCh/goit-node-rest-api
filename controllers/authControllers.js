@@ -1,5 +1,8 @@
 import HttpError from '../helpers/HttpError.js';
 import * as authServices from '../services/authServices.js';
+import path from "path";
+import fs from "fs/promises";
+
 
 const register = async (req, res) => {
   const existingUser = await authServices.findUser({ email: req.body.email });
@@ -50,9 +53,25 @@ const getCurrentController = (req, res) => {
   res.status(200).json({ email, subscription });
 };
 
+const updateAvatar = async (req, res) => {
+  const { path: tempPath, originalname } = req.file;
+  const { id } = req.user;
+  const filename = `${id}-${originalname}`;
+  const avatarsDir = path.resolve("public", "avatars");
+  const newPath = path.join(avatarsDir, filename);
+  await fs.rename(tempPath, newPath);
+
+  const avatarURL = `/avatars/${filename}`;
+  req.user.avatarURL = avatarURL;
+  await req.user.save();
+
+  res.status(200).json({ avatarURL });
+};
+
 export default {
   register,
   login,
   logout,
   current: getCurrentController,
+  updateAvatar,
 };
