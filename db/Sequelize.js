@@ -1,5 +1,6 @@
-import { Sequelize } from "sequelize";
-import "dotenv/config";
+import 'dotenv/config';
+
+import { Sequelize } from 'sequelize';
 
 const sequelize = new Sequelize({
     dialect: process.env.DATABASE_DIALECT,
@@ -14,11 +15,10 @@ const sequelize = new Sequelize({
 
 })
 
-try{
+try {
     await sequelize.authenticate();
-    console.log("Database connection successful");
-}
-catch(error) {
+    console.log('Database connection successful');
+} catch (error) {
     console.log(`Error connection to database ${error.message}`);
     process.exit(1);
 }

@@ -1,23 +1,29 @@
-import Joi from "joi";
+import Joi from 'joi';
 
 export const createContactSchema = Joi.object({
-    name: Joi.string().required(),
-    email: Joi.string().required().email(),
-    phone: Joi.string().required(),
+  name: Joi.string().required(),
+  email: Joi.string().required().email(),
+  phone: Joi.string().required(),
 })
 
-export const updateContactSchema = Joi.object({
+export const updateContactSchema =
+  Joi.object({
     name: Joi.string(),
     email: Joi.string().email(),
     phone: Joi.string(),
+  })
+    .min(1)
+    .required()
+    .messages({
+      'object.min': 'Body must have at least one field',
+      'object.unknown': 'Invalid field(s) provided',
+    })
 
-}).min(1).required().messages({
-    "object.min": "Body must have at least one field",
-    "object.unknown": "Invalid field(s) provided",
-})
-
-export const updateFavoriteSchema = Joi.object({
+export const updateFavoriteSchema =
+  Joi.object({
     favorite: Joi.boolean().required(),
-}).required().messages({
-    "object.unknown": "Invalid field(s) provided",
-})
+  })
+    .required()
+    .messages({
+      'object.unknown': 'Invalid field(s) provided',
+    })
