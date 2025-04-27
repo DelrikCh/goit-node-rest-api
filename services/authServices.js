@@ -21,6 +21,9 @@ export const loginUser = async (data) => {
   if (!user || !(await bcrypt.compare(password, user.password))) {
     throw HttpError(401, 'Email or password is wrong');
   }
+  if (!user.verify) {
+    throw HttpError(401, 'Email not verified');
+  }
 
   console.log("Generating token for user:", user.email);
   const token = generateToken({ id: user.id });

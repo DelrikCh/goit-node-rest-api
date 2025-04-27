@@ -2,7 +2,18 @@ import HttpError from '../helpers/HttpError.js';
 import * as authServices from '../services/authServices.js';
 import path from "path";
 import fs from "fs/promises";
+import { v4 as uuid } from 'uuid';
+import sendEmail from "../services/mailer.js";
 
+const sendVerificationEmail = async (email, verificationToken) => {
+  const verificationLink = `${process.env.BASE_URL}/api/auth/verify/${verificationToken}`;
+
+  await sendEmail(
+    email,
+    "Verify your email",
+    `Please verify your email by following this link: ${verificationLink}`
+  );
+}
 
 const register = async (req, res) => {
   const existingUser = await authServices.findUser({ email: req.body.email });
@@ -12,8 +23,16 @@ const register = async (req, res) => {
       message: 'Email in use',
     });
   }
+  // Create verification token with uuid
+  const verificationToken = uuid();
 
-  const { email, subscription } = await authServices.registerUser(req.body);
+  const { email, subscription } = await authServices.registerUser({
+    ...req.body,
+    verificationToken,
+    verify: false,
+  });
+  // Send verification email
+  sendVerificationEmail(email, verificationToken);
 
   res.status(201).json({
     user: {
@@ -68,10 +87,41 @@ const updateAvatar = async (req, res) => {
   res.status(200).json({ avatarURL });
 };
 
+const verifyEmail = async (req, res) => {
+  const { verificationToken } = req.params;
+  const user = await authServices.findUser({ verificationToken });
+
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  await user.update({ verify: true, verificationToken: null });
+  res.status(200).json({ message: 'Verification successful' });
+};
+
+const resendVerifyEmail = async (req, res) => {
+  const { email } = req.body;
+  const user = await authServices.findUser({ email });
+
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  if (user.verify) {
+    return res.status(400).json({ message: 'Verification has already been passed' });
+  }
+
+  sendVerificationEmail(email, user.verificationToken);
+
+  res.status(200).json({ message: 'Verification email sent' });
+};
+
 export default {
   register,
   login,
   logout,
   current: getCurrentController,
   updateAvatar,
+  verifyEmail,
+  resendVerifyEmail,
 };
